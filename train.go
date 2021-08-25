@@ -17,10 +17,11 @@ type Node struct {
 	Domino
 }
 
-func CommandLine() (longest, mostValue []Domino, err error) {
+func CommandLine() {
 	ds, start, err := readDominos()
 	if err != nil {
-		return nil, nil, err
+		fmt.Println(err)
+		return
 	}
 
 	nodes := []*Node{}
@@ -32,7 +33,19 @@ func CommandLine() (longest, mostValue []Domino, err error) {
 		})
 	}
 
-	return Best(nodes, start)
+	longest, mostValuable, _ := Best(nodes, start)
+
+	fmt.Println("Longest:")
+	for _, d := range longest {
+		fmt.Println(d)
+	}
+	fmt.Println()
+
+	fmt.Println("Most valuable:")
+	for _, d := range mostValuable {
+		fmt.Println(d)
+	}
+	fmt.Println()
 }
 
 func Best(nodes []*Node, start int) (longest, mostValue []Domino, err error) {
