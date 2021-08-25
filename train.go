@@ -1,4 +1,4 @@
-package main
+package train
 
 import (
 	"bufio"
@@ -17,11 +17,10 @@ type Node struct {
 	Domino
 }
 
-func main() {
+func CommandLine() (longest, mostValue []Domino, err error) {
 	ds, start, err := readDominos()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, nil, err
 	}
 
 	nodes := []*Node{}
@@ -33,29 +32,50 @@ func main() {
 		})
 	}
 
-	longest := findLongest(nodes, start)
-
-	for _, d := range longest {
-		fmt.Println(d)
-	}
+	return Best(nodes, start)
 }
 
-func findLongest(nodes []*Node, prev int) []Domino {
+func Best(nodes []*Node, start int) (longest, mostValue []Domino, err error) {
+	longest = findLongest(nodes, start, func(d1, d2 []Domino) bool {
+		return len(d1) < len(d2)
+	})
+	mostValue = findLongest(nodes, start, func(d1, d2 []Domino) bool {
+		sum1, sum2 := 0, 0
+		for _, d := range d1 {
+			sum1 += d.n1 + d.n2
+		}
+		for _, d := range d2 {
+			sum2 += d.n1 + d.n2
+		}
+
+		return sum1 < sum2
+	})
+
+	return longest, mostValue, nil
+}
+
+func skip(n *Node, prev int) bool {
+	if n.visited {
+		return true
+	}
+	if prev != n.n1 && prev != n.n2 {
+		// previous domino value is not equal to either face on current domino
+		return true
+	}
+	return false
+}
+
+func findLongest(nodes []*Node, prev int, Less func(d1, d2 []Domino) bool) []Domino {
 	result := []Domino{}
 
 	for _, n := range nodes {
-		if n.visited {
-			continue
-		}
-		if prev != -1 && prev != n.n1 && prev != n.n2 {
-			// -1 if first domino
-			// previous domino value is not equal to either face on current domino
+		if skip(n, prev) {
 			continue
 		}
 
-		subtrain := tryBase(n, nodes, prev)
+		subtrain := tryBase(n, nodes, prev, Less)
 
-		if len(subtrain) > len(result) {
+		if Less(result, subtrain) {
 			result = subtrain
 		}
 	}
@@ -63,7 +83,7 @@ func findLongest(nodes []*Node, prev int) []Domino {
 	return result
 }
 
-func tryBase(n *Node, nodes []*Node, prev int) []Domino {
+func tryBase(n *Node, nodes []*Node, prev int, Less func(d1, d2 []Domino) bool) []Domino {
 	n.visited = true
 	defer func() {
 		n.visited = false
@@ -80,7 +100,7 @@ func tryBase(n *Node, nodes []*Node, prev int) []Domino {
 
 	result := []Domino{d}
 
-	result = append(result, findLongest(nodes, d.n2)...)
+	result = append(result, findLongest(nodes, d.n2, Less)...)
 
 	return result
 }

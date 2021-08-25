@@ -1,4 +1,4 @@
-package main
+package train
 
 import (
 	"testing"
@@ -34,7 +34,7 @@ func TestFindLongest(t *testing.T) {
 		},
 	}
 
-	train := findLongest(ns, 5)
+	train, _, _ := Best(ns, 5)
 
 	assert.Equal(t, train, []Domino{
 		{
@@ -54,7 +54,7 @@ func TestFindLongest(t *testing.T) {
 			n2: 1,
 		},
 	})
-	train = findLongest(ns, 1)
+	train, _, _ = Best(ns, 1)
 
 	assert.Equal(t, train, []Domino{
 		{
